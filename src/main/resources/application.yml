@@ -7,7 +7,7 @@ spring:
       password: bartek
       host: localhost
       port: 27017
-      additional-hosts: chat_db
+#      additional-hosts: chat_db
       authentication-database: admin
 
 server:

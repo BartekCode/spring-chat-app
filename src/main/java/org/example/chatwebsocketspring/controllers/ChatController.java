@@ -26,9 +26,17 @@ public class ChatController {
         return chatMessage;
     }
 
+    // wysyłanie wiadomosci na publiczny czat
     @MessageMapping("/chat.send-message") // url to invoke this method
     @SendTo(CHAT_MESSAGE_DESTINATION) //to which topic/queue send message
     public ChatMessage sendMessage(@Payload ChatMessage chatMessage ) { //zamist @Requst/Response body tutaj jest @payload
+        return chatMessage;
+    }
+
+    // wysyłanie wiadomosci prywatnej
+    @MessageMapping("/chat.send-private-message")
+    @SendTo(CHAT_MESSAGE_DESTINATION)
+    public ChatMessage sendPrivateMessage(@Payload ChatMessage chatMessage ) { //zamist @Requst/Response body tutaj jest @payload
         return chatMessage;
     }
 }
