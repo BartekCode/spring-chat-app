@@ -1,8 +1,8 @@
-package org.example.chatwebsocketspring.services;
+package org.example.chatwebsocketspring.services.user;
 
-import org.example.chatwebsocketspring.model.entity.Status;
-import org.example.chatwebsocketspring.model.entity.User;
-import org.example.chatwebsocketspring.services.repository.UserRepository;
+import org.example.chatwebsocketspring.model.user.Status;
+import org.example.chatwebsocketspring.model.user.User;
+import org.example.chatwebsocketspring.services.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

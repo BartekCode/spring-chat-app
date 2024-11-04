@@ -1,6 +1,6 @@
-package org.example.chatwebsocketspring.services;
+package org.example.chatwebsocketspring.services.user;
 
-import org.example.chatwebsocketspring.model.entity.User;
+import org.example.chatwebsocketspring.model.user.User;
 
 import java.util.List;
 

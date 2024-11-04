@@ -1,4 +1,4 @@
-package org.example.chatwebsocketspring.model.entity;
+package org.example.chatwebsocketspring.model.user;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

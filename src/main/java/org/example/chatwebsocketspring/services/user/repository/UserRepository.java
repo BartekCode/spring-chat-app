@@ -1,7 +1,7 @@
-package org.example.chatwebsocketspring.services.repository;
+package org.example.chatwebsocketspring.services.user.repository;
 
-import org.example.chatwebsocketspring.model.entity.Status;
-import org.example.chatwebsocketspring.model.entity.User;
+import org.example.chatwebsocketspring.model.user.Status;
+import org.example.chatwebsocketspring.model.user.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
