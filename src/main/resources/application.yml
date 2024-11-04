@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: chat-websocket-spring
+  data:
+    mongodb:
+      username: bartek
+      password: bartek
+      host: localhost
+      port: 27017
+      additional-hosts: chat_db
+      authentication-database: admin
+
+server:
+  port: 8088
+
