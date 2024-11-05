@@ -20,18 +20,17 @@ var colors = [
 function connect(event) {
     username = document.querySelector('#name').value.trim();
 
-    if(username) {
+    if (username) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
         var socket = new SockJS("/chat-socket");
         stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, onConnected, onError);
+        stompClient.connect({}, onConnected, onError); //callback methods co ma sie zadziac na połaczeniu i błędzie
     }
     event.preventDefault();
 }
-
 
 function onConnected() {
     // Subscribe to the Public Topic
@@ -43,19 +42,28 @@ function onConnected() {
         JSON.stringify({sender: username, type: 'JOIN'})
     )
 
+    //Private messages logic
+
+    // Subscribe to own private channel
+    stompClient.subscribe('/user/${username}/queue/messages', onPrivateMessageReceived)
+
+    // register the connected user
+    stompClient.send("/app/user.add-user",
+        {},
+        JSON.stringify({nickName: username, status: 'ONLINE'})
+    )
+
     connectingElement.classList.add('hidden');
 }
-
 
 function onError(error) {
     connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
     connectingElement.style.color = 'red';
 }
 
-
 function sendMessage(event) {
     var messageContent = messageInput.value.trim();
-    if(messageContent && stompClient) {
+    if (messageContent && stompClient) {
         var chatMessage = {
             sender: username,
             content: messageInput.value,
@@ -67,13 +75,16 @@ function sendMessage(event) {
     event.preventDefault();
 }
 
+function onPrivateMessageReceived(payload){
+
+}
 
 function onMessageReceived(payload) {
     var message = JSON.parse(payload.body);
 
     var messageElement = document.createElement('li');
 
-    if(message.type === 'JOIN') {
+    if (message.type === 'JOIN') {
         messageElement.classList.add('event-message');
         message.content = message.sender + ' joined!';
     } else if (message.type === 'LEAVE') {
@@ -104,7 +115,6 @@ function onMessageReceived(payload) {
     messageArea.appendChild(messageElement);
     messageArea.scrollTop = messageArea.scrollHeight;
 }
-
 
 function getAvatarColor(messageSender) {
     var hash = 0;
