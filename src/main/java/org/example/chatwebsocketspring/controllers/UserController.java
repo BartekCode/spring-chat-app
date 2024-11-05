@@ -1,33 +1,29 @@
 package org.example.chatwebsocketspring.controllers;
 
-import org.example.chatwebsocketspring.model.chatmessage.ChatMessage;
-import org.example.chatwebsocketspring.model.chatmessage.ChatNotification;
 import org.example.chatwebsocketspring.model.dto.ChatPublicMessageDTO;
-import org.example.chatwebsocketspring.services.chatmessage.ChatMessageService;
+import org.example.chatwebsocketspring.model.user.User;
+import org.example.chatwebsocketspring.services.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.example.chatwebsocketspring.Constants.CHAT_MESSAGE_DESTINATION;
 
 @Controller
-public class ChatController {
+public class UserController {
 
-    private final ChatMessageService chatMessageService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final UserService userService;
 
-    public ChatController(ChatMessageService chatMessageService, SimpMessagingTemplate simpMessagingTemplate) {
-        this.chatMessageService = chatMessageService;
-        this.simpMessagingTemplate = simpMessagingTemplate;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @MessageMapping("/chat.join") // url to invoke this method
@@ -49,25 +45,34 @@ public class ChatController {
         return chatPublicMessageDTO;
     }
 
+    // wysyłanie wiadomosci prywatnej
     @MessageMapping("/chat.send-private-message")
-    public void processPrivateMessage(@Payload ChatMessage chatMessage) {
-        ChatMessage savedMessage = chatMessageService.save(chatMessage);
-        // bartek/queue/private
-        simpMessagingTemplate.convertAndSendToUser(
-                savedMessage.getRecipientId(),
-                "/queue/private",
-                ChatNotification.builder()
-                        .id(savedMessage.getId())
-                        .recipientId(savedMessage.getRecipientId())
-                        .senderId(savedMessage.getSenderId())
-                        .content(savedMessage.getContent())
-                        .build()
-        );
+    @SendTo(CHAT_MESSAGE_DESTINATION)
+    public ChatPublicMessageDTO sendPrivateMessage(@Payload ChatPublicMessageDTO chatPublicMessageDTO) { //zamist @Requst/Response body tutaj jest @payload
+        return chatPublicMessageDTO;
     }
 
-    @GetMapping("/messages/{senderId}/{recipientId}")
-    public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String senderId, @PathVariable String recipientId) {
-        return ResponseEntity.ok(chatMessageService.findChatMessages(senderId, recipientId));
+    // user related controllers
+    @MessageMapping("/user.add-user")
+    @SendTo("/user/topic")
+    public User addUser(
+            @Payload User user
+    ) {
+        userService.save(user);
+        return user;
     }
 
+    @MessageMapping("/user.disconnect-user")
+    @SendTo("/user/topic")
+    public User disconnectUser(
+            @Payload User user
+    ) {
+        userService.save(user);
+        return user;
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getConnectedUsers() {
+        return ResponseEntity.of(Optional.ofNullable(userService.findConnectedUsers()));
+    }
 }

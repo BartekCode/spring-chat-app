@@ -1,6 +1,6 @@
 package org.example.chatwebsocketspring.services.listeners;
 
-import org.example.chatwebsocketspring.model.dto.ChatMessage;
+import org.example.chatwebsocketspring.model.dto.ChatPublicMessageDTO;
 import org.example.chatwebsocketspring.model.dto.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public record WebSocketEventListener(
         String userName = (String) Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("userName");
         if (userName != null) {
             log.info("User {} disconnected from the chat.", userName);
-            ChatMessage userLeftTheChatMsg = ChatMessage.builder()
+            ChatPublicMessageDTO userLeftTheChatMsg = ChatPublicMessageDTO.builder()
                     .type(MessageType.LEAVE)
                     .sender(userName)
                     .build();
