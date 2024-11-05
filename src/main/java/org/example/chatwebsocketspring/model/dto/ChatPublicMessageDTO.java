@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Builder
 @Document
-public record ChatMessage(
+public record ChatPublicMessageDTO(
         String content,
         String sender,
         MessageType type
