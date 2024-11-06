@@ -3,6 +3,8 @@ package org.example.chatwebsocketspring.services.user;
 import org.example.chatwebsocketspring.model.user.Status;
 import org.example.chatwebsocketspring.model.user.User;
 import org.example.chatwebsocketspring.services.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -20,6 +23,7 @@ public class UserServiceImpl implements UserService {
     public void save(User user) {
         user.setStatus(Status.ONLINE);
         userRepository.save(user);
+        userSavedLog(user);
     }
 
     @Override
@@ -28,11 +32,18 @@ public class UserServiceImpl implements UserService {
         if (storedUser != null) {
             storedUser.setStatus(Status.OFFLINE);
             userRepository.save(storedUser);
+            userSavedLog(user);
         }
     }
 
     @Override
     public List<User> findConnectedUsers() {
-        return userRepository.findAllByStatus(Status.ONLINE);
+        List<User> allByStatus = userRepository.findAllByStatus(Status.ONLINE);
+        log.info("Found connected users: {}", allByStatus);
+        return allByStatus;
+    }
+
+    private static void userSavedLog(User user) {
+        log.info("User saved: {}", user);
     }
 }

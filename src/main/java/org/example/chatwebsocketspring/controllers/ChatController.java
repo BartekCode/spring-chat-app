@@ -69,4 +69,5 @@ public class ChatController {
     public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String senderId, @PathVariable String recipientId) {
         return ResponseEntity.ok(chatMessageService.findChatMessages(senderId, recipientId));
     }
+
 }

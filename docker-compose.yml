@@ -1,7 +1,7 @@
 services:
   mongodb:
     image: mongo
-    container_name: mongo_db
+    container_name: chat_mongo_db
     ports:
       - 27017:27017
     volumes:
@@ -14,10 +14,10 @@ services:
     container_name: mongo-express
     restart: always
     ports:
-      - 8081:8081
+      - 9090:8081
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=bartek
       - ME_CONFIG_MONGODB_ADMINPASSWORD=bartek
-      - ME_CONFIG_MONGODB_SERVER=chat-mongodb
+      - ME_CONFIG_MONGODB_SERVER=chat_mongo_db
 volumes:
   mongo: {}
