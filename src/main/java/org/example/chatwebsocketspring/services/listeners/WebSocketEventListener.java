@@ -2,6 +2,9 @@ package org.example.chatwebsocketspring.services.listeners;
 
 import org.example.chatwebsocketspring.model.dto.ChatPublicMessageDTO;
 import org.example.chatwebsocketspring.model.dto.MessageType;
+import org.example.chatwebsocketspring.model.user.Status;
+import org.example.chatwebsocketspring.model.user.User;
+import org.example.chatwebsocketspring.services.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -16,7 +19,8 @@ import static org.example.chatwebsocketspring.Constants.CHAT_MESSAGE_DESTINATION
 
 @Service
 public record WebSocketEventListener(
-        SimpMessageSendingOperations messageTemplate
+        SimpMessageSendingOperations messageTemplate,
+        UserService userService
 ) {
 
     private static final  Logger log = LoggerFactory.getLogger(WebSocketEventListener.class);
@@ -33,6 +37,7 @@ public record WebSocketEventListener(
                     .sender(userName)
                     .build();
             messageTemplate.convertAndSend(CHAT_MESSAGE_DESTINATION, userLeftTheChatMsg); // "/topic/public/"
+            userService.disconnect(User.builder().nickName(userName).build());
         }
     }
 }

@@ -33,6 +33,7 @@ public class UserServiceImpl implements UserService {
             storedUser.setStatus(Status.OFFLINE);
             userRepository.save(storedUser);
             userSavedLog(user);
+            log.info("User: {}, disconnected.", user.getNickName());
         }
     }
 
