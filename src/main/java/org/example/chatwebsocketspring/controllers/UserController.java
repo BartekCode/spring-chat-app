@@ -36,7 +36,6 @@ public class UserController {
             @Payload User user
     ) {
         userService.save(user);
-        System.out.println("---------------------------------------------------");
         return user;
     }
 

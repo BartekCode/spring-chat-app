@@ -40,7 +40,7 @@ function onConnected() {
     stompClient.send("/app/chat.join",
         {},
         JSON.stringify({sender: username, type: 'JOIN'})
-    )
+    );
 
     //Private messages logic
 
@@ -51,9 +51,60 @@ function onConnected() {
     stompClient.send("/app/user.add-user",
         {},
         JSON.stringify({nickName: username, status: 'ONLINE'})
-    )
+    );
+
+    // find and display connected users, wywołanie metody async
+    findAndDisplayConnectedUsers().then();
 
     connectingElement.classList.add('hidden');
+}
+
+// tak tworzymy funkcje asynchroniczne w js, korzystamy z tego w requestach http
+async function findAndDisplayConnectedUsers(){
+    // strzelamy na be zamieniamy odpowiedz na json i mapujemu tespone na json
+    let connectedUsers = (await fetch('/users')
+        .then(response => response.json()))
+        //filtrujemy by w tych userach nie bylo nas
+        .filter(user => user.username !== username);
+
+    const connectedUsersList = document.querySelector('#connectedUsers');
+    connectedUsersList.innerHTML = '';
+    connectedUsersList.forEach(connectedUser => {
+       appendUserElement(connectedUser, connectedUsersList);
+       //jezeli jeszcze nie ma ostatniego elementu
+       if (connectedUsers.index(connectedUser) < connectedUsers.length -1) {
+           // add separator, tworzymy element html
+           const separator = document.createElement('li');
+           // dodajemy classe do naszego html 'separator'
+           separator.classList.add('separator');
+           // dodajemy child obiekt który utworzylismy
+           connectedUsersList.appendChild(separator)
+       }
+    });
+
+}
+
+function appendUserElement(element) {
+    const listItem = document.createElement('li');
+    listItem.classList.add('user-item');
+    listItem.id = user.username;
+
+    // tworzymy img
+    const userImage = document.createElement('img');
+    userImage.src = '../img/user_icon.png';
+    userImage.alt = user.username;
+
+    const usernameSpan = document.createElement('span');
+    usernameSpan.textContent = user.username;
+
+    const receivedMsgs = document.createElement('span');
+    receivedMsgs.textContent = '';
+    receivedMsgs.classList.add('nbr-msg', 'hidden');
+
+    // dodajemy do elementu nowe child html elements
+    listItem.appendChild(userImage);
+    listItem.appendChild(usernameSpan);
+    listItem.appendChild(receivedMsgs);
 }
 
 function onError(error) {
