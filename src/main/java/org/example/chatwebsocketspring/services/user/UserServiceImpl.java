@@ -38,7 +38,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findConnectedUsers() {
-        return userRepository.findAllByStatus(Status.ONLINE);
+        List<User> allByStatus = userRepository.findAllByStatus(Status.ONLINE);
+        log.info("Found connected users: {}", allByStatus);
+        return allByStatus;
     }
 
     private static void userSavedLog(User user) {

@@ -65,14 +65,17 @@ async function findAndDisplayConnectedUsers(){
     let connectedUsers = (await fetch('/users')
         .then(response => response.json()))
         //filtrujemy by w tych userach nie bylo nas
-        .filter(user => user.username !== username);
+        .filter(user => user.nickName !== username);
 
     const connectedUsersList = document.querySelector('#connectedUsers');
     connectedUsersList.innerHTML = '';
-    connectedUsersList.forEach(connectedUser => {
+
+    console.log(connectedUsers);
+
+    connectedUsers.forEach(connectedUser => {
        appendUserElement(connectedUser, connectedUsersList);
        //jezeli jeszcze nie ma ostatniego elementu
-       if (connectedUsers.index(connectedUser) < connectedUsers.length -1) {
+       if (connectedUsers.indexOf(connectedUser) < connectedUsers.length -1) {
            // add separator, tworzymy element html
            const separator = document.createElement('li');
            // dodajemy classe do naszego html 'separator'
@@ -84,7 +87,7 @@ async function findAndDisplayConnectedUsers(){
 
 }
 
-function appendUserElement(element) {
+function appendUserElement(user, connectedUsersList) {
     const listItem = document.createElement('li');
     listItem.classList.add('user-item');
     listItem.id = user.username;
@@ -105,6 +108,8 @@ function appendUserElement(element) {
     listItem.appendChild(userImage);
     listItem.appendChild(usernameSpan);
     listItem.appendChild(receivedMsgs);
+
+    connectedUsersList.appendChild(listItem);
 }
 
 function onError(error) {
