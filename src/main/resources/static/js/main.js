@@ -70,8 +70,6 @@ async function findAndDisplayConnectedUsers(){
     const connectedUsersList = document.querySelector('#connectedUsers');
     connectedUsersList.innerHTML = '';
 
-    console.log(connectedUsers);
-
     connectedUsers.forEach(connectedUser => {
        appendUserElement(connectedUser, connectedUsersList);
        //jezeli jeszcze nie ma ostatniego elementu
