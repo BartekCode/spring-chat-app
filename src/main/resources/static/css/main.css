@@ -121,7 +121,6 @@ button.accent {
     margin-top: 10px;
 }
 
-
 #chat-page {
     position: relative;
     height: 100%;
@@ -137,10 +136,11 @@ button.accent {
     height: calc(100% - 60px);
     max-height: 600px;
     position: relative;
+    width: 80%;
+    display: inline-block;
 }
 
 .users-list {
-    flex: 1;
     border-right: 1px solid #ccc;
     padding: 20px;
     box-sizing: border-box;
@@ -148,9 +148,16 @@ button.accent {
     color: #fff;
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
-    display: flex;
     flex-direction: column;
     justify-content: space-between;
+    width: 20%;
+    display: inline-block;
+}
+
+.users-list, .chat-container {
+    display: inline-block;
+    vertical-align: top; /* Wyrównanie w pionie */
+    margin-right: 0;
 }
 
 .users-list-container {
@@ -192,11 +199,12 @@ button.accent {
 
 .user-item span {
     font-weight: bold;
+    color: black;
 }
 
 .separator {
     height: 1px;
-    background-color: #ccc;
+    background-color: white;
     margin: 10px 0;
 }
 
