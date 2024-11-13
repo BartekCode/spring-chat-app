@@ -11,6 +11,7 @@ var connectingElement = document.querySelector('.connecting');
 
 var stompClient = null;
 var username = null;
+var selectedUserId = null;
 
 var colors = [
     '#2196F3', '#32c787', '#00BCD4', '#ff5652',
@@ -60,7 +61,7 @@ function onConnected() {
 }
 
 // tak tworzymy funkcje asynchroniczne w js, korzystamy z tego w requestach http
-async function findAndDisplayConnectedUsers(){
+async function findAndDisplayConnectedUsers() {
     // strzelamy na be zamieniamy odpowiedz na json i mapujemu tespone na json
     let connectedUsers = (await fetch('/users')
         .then(response => response.json()))
@@ -71,16 +72,16 @@ async function findAndDisplayConnectedUsers(){
     connectedUsersList.innerHTML = '';
 
     connectedUsers.forEach(connectedUser => {
-       appendUserElement(connectedUser, connectedUsersList);
-       //jezeli jeszcze nie ma ostatniego elementu
-       if (connectedUsers.indexOf(connectedUser) < connectedUsers.length -1) {
-           // add separator, tworzymy element html
-           const separator = document.createElement('li');
-           // dodajemy classe do naszego html 'separator'
-           separator.classList.add('separator');
-           // dodajemy child obiekt który utworzylismy
-           connectedUsersList.appendChild(separator)
-       }
+        appendUserElement(connectedUser, connectedUsersList);
+        //jezeli jeszcze nie ma ostatniego elementu
+        if (connectedUsers.indexOf(connectedUser) < connectedUsers.length - 1) {
+            // add separator, tworzymy element html
+            const separator = document.createElement('li');
+            // dodajemy classe do naszego html 'separator'
+            separator.classList.add('separator');
+            // dodajemy child obiekt który utworzylismy
+            connectedUsersList.appendChild(separator)
+        }
     });
 
 }
@@ -88,15 +89,16 @@ async function findAndDisplayConnectedUsers(){
 function appendUserElement(user, connectedUsersList) {
     const listItem = document.createElement('li');
     listItem.classList.add('user-item');
-    listItem.id = user.username;
+    listItem.id = user.nickName;
 
     // tworzymy img
     const userImage = document.createElement('img');
+    const userNameText = user.nickName;
     userImage.src = '../img/user_icon.png';
-    userImage.alt = user.username;
+    userImage.alt = userNameText;
 
     const usernameSpan = document.createElement('span');
-    usernameSpan.textContent = user.username;
+    usernameSpan.textContent = userNameText;
 
     const receivedMsgs = document.createElement('span');
     receivedMsgs.textContent = '';
@@ -107,7 +109,54 @@ function appendUserElement(user, connectedUsersList) {
     listItem.appendChild(usernameSpan);
     listItem.appendChild(receivedMsgs);
 
+    listItem.addEventListener('click', userItemClick)
+
     connectedUsersList.appendChild(listItem);
+}
+
+function userItemClick(event) {
+    document.querySelectorAll('.user-item').forEach((element) => {
+        element.classList.remove('active');
+    })
+    messageForm.classList.remove('hidden');
+
+    const clickedUser = event.currentTarget;
+    clickedUser.classList.add('active');
+
+    selectedUserId = clickedUser.getAttribute('id');
+
+    //chat between collectedUser and selected one
+    fetchAndDisplayUserChat(selectedUserId).then(); //then zeby wywolac metode async
+
+    const nbrMsg = clickedUser.querySelector('.nbr-msg');
+    nbrMsg.classList.add('hidden'); // hidden/active czy element html ma sie pokazac czy nie
+}
+
+async function fetchAndDisplayUserChat(selectedUserId) {
+    const userChat = (await fetch('/messages/${username}/${selectedUserId}')
+        .then(response => response.json()));
+
+    userChat.forEach(chat => {
+        displayMessage(chat.senderId, chat.content);
+    });
+
+    //display always latest message
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function displayMessage(senderId, message) {
+    const messageContainer = document.createElement('div');
+    messageContainer.classList.add('message');
+    if (senderId === username) {
+        messageContainer.classList.add('sender');
+    } else {
+        messageContainer.classList.add('receiver');
+    }
+    const messageText = document.createElement('p');
+    messageText.textContent = message;
+    //dodajemy utworzony element p do naszego div jako dziecko
+    messageContainer.appendChild(messageText);
+    chatArea.appendChild(messageContainer);
 }
 
 function onError(error) {
@@ -116,9 +165,9 @@ function onError(error) {
 }
 
 function sendMessage(event) {
-    var messageContent = messageInput.value.trim();
+    const messageContent = messageInput.value.trim();
     if (messageContent && stompClient) {
-        var chatMessage = {
+        const chatMessage = {
             sender: username,
             content: messageInput.value,
             type: 'CHAT'
@@ -129,8 +178,44 @@ function sendMessage(event) {
     event.preventDefault();
 }
 
-function onPrivateMessageReceived(payload){
+function sendPrivateMessage(event) {
+    const messageContent = messageInput.value.trim();
+    if (messageContent && stompClient) {
+        const chatMessage = {
+            senderId: username,
+            receiverId: selectedUserId,
+            content: messageContent,
+            timestamp: Date.now(),
+        };
+        stompClient.send("/app/chat.send-private-message", {}, JSON.stringify(chatMessage));
+        displayMessage(username, messageContent);
+    }
+    //display always latest message
+    chatArea.scrollTop = chatArea.scrollHeight;
 
+    event.preventDefault();
+}
+
+async function onPrivateMessageReceived(payload) {
+    await findAndDisplayConnectedUsers().then()
+    // message jakie otrzymamy z subskrypcji kanału
+    const message = JSON.parse(payload.body);
+    if (selectedUserId && selectedUserId === message.senderId) {
+        displayMessage(message.senderId, message.content);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    if (selectedUserId) {
+        document.querySelector('#${selectedUserId}').classList.add('active');
+    } else {
+        messageForm.classList.add('hidden')
+    }
+
+    const notifiedUser = document.querySelector('#${message.senderId}');
+    if (notifiedUser && !notifiedUser.classList.contains('active')) {
+        const nbrMsg = notifiedUser.querySelector('.nbr-msg');
+        nbrMsg.classList.remove('hidden');
+        nbrMsg.textContent = '';
+    }
 }
 
 function onMessageReceived(payload) {
@@ -182,3 +267,4 @@ function getAvatarColor(messageSender) {
 // eventy co ma sie zadziac na wywołaniu danego formulatza
 usernameForm.addEventListener('submit', connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
+messageForm.addEventListener('submit', sendPrivateMessage, true)
