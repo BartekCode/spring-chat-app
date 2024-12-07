@@ -182,6 +182,7 @@ function sendMessage(event) {
     event.preventDefault();
 }
 
+//TODO ogarniecie private message moze odpala sie private chat? a jak klikniemy na public przelaczy sie na publiczny?
 function sendPrivateMessage(event) {
     const messageContent = messageInput.value.trim();
     if (messageContent && stompClient) {
