@@ -8,6 +8,7 @@ var messageForm = document.querySelector('#messageForm');
 var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#messageArea');
 var connectingElement = document.querySelector('.connecting');
+var logout = document.querySelector('#logout');
 
 var stompClient = null;
 var username = null;
@@ -53,6 +54,9 @@ function onConnected() {
         {},
         JSON.stringify({nickName: username, status: 'ONLINE'})
     );
+
+    // display username on logout
+    document.querySelector('#connected-user-fullname').textContent = username
 
     // find and display connected users, wywołanie metody async
     findAndDisplayConnectedUsers().then();
@@ -264,7 +268,17 @@ function getAvatarColor(messageSender) {
     return colors[index];
 }
 
+function onLogout(){
+ stompClient.send(
+     '/app/user.disconnectUser',
+     {},
+     JSON.stringify({nickName: username, status: 'OFFLINE'})
+    )
+    window.location.reload(); // przeladowujemy strone
+}
+
 // eventy co ma sie zadziac na wywołaniu danego formulatza
 usernameForm.addEventListener('submit', connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
 messageForm.addEventListener('submit', sendPrivateMessage, true)
+logout.addEventListener('click', onLogout, true)
