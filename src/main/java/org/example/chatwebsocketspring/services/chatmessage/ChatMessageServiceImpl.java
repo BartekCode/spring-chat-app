@@ -6,7 +6,6 @@ import org.example.chatwebsocketspring.services.chatroom.ChatRoomService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
@@ -21,7 +20,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     @Override
     public ChatMessage save(ChatMessage chatMessage) {
-        var chatId = chatRoomService.getChatRoomId(chatMessage.getSenderId(), chatMessage.getRecipientId(), true)
+        var chatId = chatRoomService.getChatRoomId(chatMessage.getSenderId(), chatMessage.getReceiverId(), true)
                 .orElseThrow(); // TODO create exception
         chatMessage.setChatId(chatId);
         return chatMessageRepository.save(chatMessage);

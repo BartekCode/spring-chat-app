@@ -54,11 +54,11 @@ public class ChatController {
         ChatMessage savedMessage = chatMessageService.save(chatMessage);
         // bartek/queue/private
         simpMessagingTemplate.convertAndSendToUser(
-                savedMessage.getRecipientId(),
+                savedMessage.getReceiverId(),
                 "/queue/private",
                 ChatNotification.builder()
                         .id(savedMessage.getId())
-                        .recipientId(savedMessage.getRecipientId())
+                        .recipientId(savedMessage.getReceiverId())
                         .senderId(savedMessage.getSenderId())
                         .content(savedMessage.getContent())
                         .build()
