@@ -7,6 +7,11 @@ var usernameForm = document.querySelector('#usernameForm');
 var messageForm = document.querySelector('#messageForm');
 var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#messageArea');
+
+var privateMessageForm = document.querySelector('#privateMessageForm');
+var privateMessageInput = document.querySelector('#privateMessage');
+var privateChatArea = document.querySelector('#chat-messages');
+
 var connectingElement = document.querySelector('.connecting');
 var logout = document.querySelector('#logout');
 
@@ -122,7 +127,13 @@ function userItemClick(event) {
     document.querySelectorAll('.user-item').forEach((element) => {
         element.classList.remove('active');
     })
-    messageForm.classList.remove('hidden');
+
+    //ustawiamy private chat na widoczny
+    messageArea.classList.add('hidden');
+    privateChatArea.classList.remove('hidden');
+
+    messageForm.classList.add('hidden');
+    privateMessageForm.classList.remove('hidden');
 
     const clickedUser = event.currentTarget;
     clickedUser.classList.add('active');
@@ -136,8 +147,8 @@ function userItemClick(event) {
     nbrMsg.classList.add('hidden'); // hidden/active czy element html ma sie pokazac czy nie
 }
 
-async function fetchAndDisplayUserChat(selectedUserId) {
-    const userChat = (await fetch('/messages/${username}/${selectedUserId}')
+async function fetchAndDisplayUserChat() {
+    const userChat = (await fetch(`/messages/${username}/${selectedUserId}`)
         .then(response => response.json()));
 
     userChat.forEach(chat => {
@@ -145,12 +156,12 @@ async function fetchAndDisplayUserChat(selectedUserId) {
     });
 
     //display always latest message
-    chatArea.scrollTop = chatArea.scrollHeight;
+    privateChatArea.scrollTop = privateChatArea.scrollHeight;
 }
 
 function displayMessage(senderId, message) {
     const messageContainer = document.createElement('div');
-    messageContainer.classList.add('message');
+    messageContainer.classList.add('privateMessage');
     if (senderId === username) {
         messageContainer.classList.add('sender');
     } else {
@@ -160,7 +171,7 @@ function displayMessage(senderId, message) {
     messageText.textContent = message;
     //dodajemy utworzony element p do naszego div jako dziecko
     messageContainer.appendChild(messageText);
-    chatArea.appendChild(messageContainer);
+    privateChatArea.appendChild(messageContainer);
 }
 
 function onError(error) {
@@ -182,21 +193,21 @@ function sendMessage(event) {
     event.preventDefault();
 }
 
-//TODO ogarniecie private message moze odpala sie private chat? a jak klikniemy na public przelaczy sie na publiczny?
 function sendPrivateMessage(event) {
-    const messageContent = messageInput.value.trim();
+    const messageContent = privateMessageInput.value.trim();
     if (messageContent && stompClient) {
         const chatMessage = {
             senderId: username,
             receiverId: selectedUserId,
             content: messageContent,
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString()
         };
         stompClient.send("/app/chat.send-private-message", {}, JSON.stringify(chatMessage));
         displayMessage(username, messageContent);
+        privateMessageInput.value = '';
     }
     //display always latest message
-    chatArea.scrollTop = chatArea.scrollHeight;
+    privateChatArea.scrollTop = privateChatArea.scrollHeight;
 
     event.preventDefault();
 }
@@ -207,12 +218,12 @@ async function onPrivateMessageReceived(payload) {
     const message = JSON.parse(payload.body);
     if (selectedUserId && selectedUserId === message.senderId) {
         displayMessage(message.senderId, message.content);
-        chatArea.scrollTop = chatArea.scrollHeight;
+        privateChatArea.scrollTop = privateChatArea.scrollHeight;
     }
     if (selectedUserId) {
         document.querySelector('#${selectedUserId}').classList.add('active');
     } else {
-        messageForm.classList.add('hidden')
+        privateMessageForm.classList.add('hidden')
     }
 
     const notifiedUser = document.querySelector('#${message.senderId}');
@@ -281,5 +292,5 @@ function onLogout(){
 // eventy co ma sie zadziac na wywołaniu danego formulatza
 usernameForm.addEventListener('submit', connect, true)
 messageForm.addEventListener('submit', sendMessage, true)
-messageForm.addEventListener('submit', sendPrivateMessage, true)
+privateMessageForm.addEventListener('submit', sendPrivateMessage, true)
 logout.addEventListener('click', onLogout, true)

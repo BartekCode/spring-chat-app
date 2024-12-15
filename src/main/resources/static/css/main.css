@@ -5,6 +5,9 @@
 html,body {
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 body {
@@ -85,6 +88,7 @@ button.primary {
     color: #fff;
 }
 
+
 button.accent {
     background-color: #6db33f;
     box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.12);
@@ -102,9 +106,7 @@ button.accent {
     width: 100%;
     max-width: 500px;
     display: inline-block;
-    margin-top: 42px;
     vertical-align: middle;
-    position: relative;
     padding: 35px 55px 35px;
     min-height: 250px;
     position: absolute;
@@ -125,9 +127,9 @@ button.accent {
 }
 
 .chat-container {
-    max-width: 700px;
+    max-width: 100%;
     margin-left: auto;
-    margin-right: auto;
+    margin-right: 50px;
     background-color: #fff;
     box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
     margin-top: 30px;
@@ -220,7 +222,7 @@ button.accent {
     height: calc(100% - 150px);
 }
 
-#chat-page #messageForm {
+#chat-page #messageForm #privateMessageForm{
     padding: 20px;
 }
 
@@ -278,12 +280,24 @@ button.accent {
     color: #43464b;
 }
 
-#messageForm .input-group input {
+#messageForm  .input-group input {
     float: left;
     width: calc(100% - 85px);
 }
 
 #messageForm .input-group button {
+    float: left;
+    width: 80px;
+    height: 38px;
+    margin-left: 5px;
+}
+
+#privateMessageForm  .input-group input {
+    float: left;
+    width: calc(100% - 85px);
+}
+
+#privateMessageForm .input-group button {
     float: left;
     width: 80px;
     height: 38px;
@@ -354,6 +368,81 @@ button.accent {
 
     .chat-header h2 {
         font-size: 1.1em;
+    }
+
+    .private-chat-area {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        box-sizing: border-box;
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    .privateMessage {
+        margin-bottom: 5px;
+        border-radius: 5px;
+    }
+
+    #chat-messages {
+        display: flex;
+        flex-direction: column;
+        overflow-y: scroll;
+    }
+
+    .privateMessage p {
+        padding: 0 12px;
+        border-radius: 15px;
+        word-wrap: break-word;
+    }
+
+    .user-item span.nbr-msg {
+        margin-left: 10px;
+        background-color: #f8fa6f;
+        color: white;
+        padding: 5px;
+        width: 10px;
+        border-radius: 50%;
+        height: 10px;
+    }
+
+    .sender {
+        background-color: #3498db;
+        color: #fff;
+        align-self: flex-end;
+    }
+
+    .receiver {
+        background-color: #ecf0f1;
+        color: #333;
+        align-self: flex-start;
+    }
+
+    .message-input {
+        margin-top: auto;
+        display: flex;
+    }
+
+    .message-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+
+    .message-input button {
+        padding: 10px;
+        border: none;
+        background-color: #3498db;
+        color: #fff;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .hidden {
+        display: none;
     }
 
     .logout {

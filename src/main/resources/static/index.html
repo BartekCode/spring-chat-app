@@ -45,11 +45,27 @@
         </div>
         <ul id="messageArea">
         </ul>
+
+        <div class="private-chat-area">
+            <div class="private-chat-area" id="chat-messages">
+            </div>
+        </div>
+
         <form id="messageForm" name="messageForm">
             <div class="form-group">
                 <div class="input-group clearfix">
                     <input type="text" id="message" placeholder="Type a message..." autocomplete="off"
                            class="form-control"/>
+                    <button type="submit" class="primary">Send</button>
+                </div>
+            </div>
+        </form>
+
+        <form id="privateMessageForm" name="privateMessageForm" class="hidden">
+            <div class="form-group">
+                <div class="input-group clearfix">
+                    <input autocomplete="off" type="text" id="privateMessage" placeholder="Type your message..."
+                            class="form-control"/>
                     <button type="submit" class="primary">Send</button>
                 </div>
             </div>
