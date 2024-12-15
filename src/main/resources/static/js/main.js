@@ -1,27 +1,24 @@
 'use strict';
 
-// tak odnośimy sie do elementow z html
-var usernamePage = document.querySelector('#username-page');
-var chatPage = document.querySelector('#chat-page');
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-var connectingElement = document.querySelector('.connecting');
+const usernamePage = document.querySelector('#username-page');
+const chatPage = document.querySelector('#chat-page');
+const usernameForm = document.querySelector('#usernameForm');
+const messageForm = document.querySelector('#messageForm');
+const messageInput = document.querySelector('#message');
+const connectingElement = document.querySelector('.connecting');
+const chatArea = document.querySelector('#chat-messages');
+const logout = document.querySelector('#logout');
 
-var stompClient = null;
-var username = null;
-var selectedUserId = null;
-
-var colors = [
-    '#2196F3', '#32c787', '#00BCD4', '#ff5652',
-    '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
-];
+let stompClient = null;
+let nickname = null;
+let fullname = null;
+let selectedUserId = null;
 
 function connect(event) {
-    username = document.querySelector('#name').value.trim();
+    nickname = document.querySelector('#nickname').value.trim();
+    fullname = document.querySelector('#fullname').value.trim();
 
-    if (username) {
+    if (nickname && fullname) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
@@ -34,30 +31,17 @@ function connect(event) {
 }
 
 function onConnected() {
-    // Subscribe to the Public Topic
-    stompClient.subscribe('/topic/public', onMessageReceived);
-
-    // Tell your username to the server
-    stompClient.send("/app/chat.join",
-        {},
-        JSON.stringify({sender: username, type: 'JOIN'})
-    );
-
-    //Private messages logic
-
-    // Subscribe to own private channel
-    stompClient.subscribe('/user/${username}/queue/messages', onPrivateMessageReceived)
+    //zczytujemy wiadmosci z danych kanałów
+    stompClient.subscribe(`/user/${nickname}/queue/messages`, onMessageReceived);
+    stompClient.subscribe('/user/public', onMessageReceived);
 
     // register the connected user
     stompClient.send("/app/user.add-user",
         {},
-        JSON.stringify({nickName: username, status: 'ONLINE'})
+        JSON.stringify({nickName: nickname, fullName: fullname, status: 'ONLINE'})
     );
-
-    // find and display connected users, wywołanie metody async
-    findAndDisplayConnectedUsers().then();
-
-    connectingElement.classList.add('hidden');
+    document.querySelector('#connected-user-fullname').textContent = fullname;
+    findAndDisplayConnectedUsers();
 }
 
 // tak tworzymy funkcje asynchroniczne w js, korzystamy z tego w requestach http
@@ -66,9 +50,9 @@ async function findAndDisplayConnectedUsers() {
     let connectedUsers = (await fetch('/users')
         .then(response => response.json()))
         //filtrujemy by w tych userach nie bylo nas
-        .filter(user => user.nickName !== username);
+        .filter(user => user.nickName !== nickname);
 
-    const connectedUsersList = document.querySelector('#connectedUsers');
+    const connectedUsersList = document.getElementById('connectedUsers');
     connectedUsersList.innerHTML = '';
 
     connectedUsers.forEach(connectedUser => {
@@ -93,12 +77,11 @@ function appendUserElement(user, connectedUsersList) {
 
     // tworzymy img
     const userImage = document.createElement('img');
-    const userNameText = user.nickName;
     userImage.src = '../img/user_icon.png';
-    userImage.alt = userNameText;
+    userImage.alt = user.fullName;
 
     const usernameSpan = document.createElement('span');
-    usernameSpan.textContent = userNameText;
+    usernameSpan.textContent = user.fullName;
 
     const receivedMsgs = document.createElement('span');
     receivedMsgs.textContent = '';
@@ -115,51 +98,50 @@ function appendUserElement(user, connectedUsersList) {
 }
 
 function userItemClick(event) {
-    document.querySelectorAll('.user-item').forEach((element) => {
-        element.classList.remove('active');
-    })
+    document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.remove('active');
+    });
     messageForm.classList.remove('hidden');
 
     const clickedUser = event.currentTarget;
     clickedUser.classList.add('active');
 
     selectedUserId = clickedUser.getAttribute('id');
-
-    //chat between collectedUser and selected one
-    fetchAndDisplayUserChat(selectedUserId).then(); //then zeby wywolac metode async
+    fetchAndDisplayUserChat().then();
 
     const nbrMsg = clickedUser.querySelector('.nbr-msg');
-    nbrMsg.classList.add('hidden'); // hidden/active czy element html ma sie pokazac czy nie
+    nbrMsg.classList.add('hidden');
+    nbrMsg.textContent = '';
+
 }
 
-async function fetchAndDisplayUserChat(selectedUserId) {
-    const userChat = (await fetch('/messages/${username}/${selectedUserId}')
-        .then(response => response.json()));
-
-    userChat.forEach(chat => {
-        displayMessage(chat.senderId, chat.content);
-    });
-
-    //display always latest message
-    chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function displayMessage(senderId, message) {
+function displayMessage(senderId, content) {
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message');
-    if (senderId === username) {
+    if (senderId === nickname) {
         messageContainer.classList.add('sender');
     } else {
         messageContainer.classList.add('receiver');
     }
-    const messageText = document.createElement('p');
-    messageText.textContent = message;
+    const message = document.createElement('p');
+    message.textContent = content;
     //dodajemy utworzony element p do naszego div jako dziecko
-    messageContainer.appendChild(messageText);
+    messageContainer.appendChild(message);
     chatArea.appendChild(messageContainer);
 }
 
-function onError(error) {
+async function fetchAndDisplayUserChat() {
+    const userChatResponse = await fetch(`/messages/${nickname}/${selectedUserId}`);
+    const userChat = await userChatResponse.json();
+    chatArea.innerHTML = '';
+    userChat.forEach(chat => {
+        displayMessage(chat.senderId, chat.content);
+    });
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+
+function onError() {
     connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
     connectingElement.style.color = 'red';
 }
@@ -168,91 +150,41 @@ function sendMessage(event) {
     const messageContent = messageInput.value.trim();
     if (messageContent && stompClient) {
         const chatMessage = {
-            sender: username,
-            content: messageInput.value,
-            type: 'CHAT'
-        };
-        stompClient.send("/app/chat.send-message", {}, JSON.stringify(chatMessage));
-        messageInput.value = '';
-    }
-    event.preventDefault();
-}
-
-function sendPrivateMessage(event) {
-    const messageContent = messageInput.value.trim();
-    if (messageContent && stompClient) {
-        const chatMessage = {
-            senderId: username,
-            receiverId: selectedUserId,
+            senderId: nickname,
+            recipientId: selectedUserId,
             content: messageContent,
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString()
         };
         stompClient.send("/app/chat.send-private-message", {}, JSON.stringify(chatMessage));
-        displayMessage(username, messageContent);
+        displayMessage(nickname, messageContent);
+        messageInput.value = '';
     }
     //display always latest message
     chatArea.scrollTop = chatArea.scrollHeight;
-
     event.preventDefault();
 }
 
-async function onPrivateMessageReceived(payload) {
+async function onMessageReceived(payload) {
     await findAndDisplayConnectedUsers().then()
     // message jakie otrzymamy z subskrypcji kanału
+    console.log('Message received', payload);
     const message = JSON.parse(payload.body);
     if (selectedUserId && selectedUserId === message.senderId) {
         displayMessage(message.senderId, message.content);
         chatArea.scrollTop = chatArea.scrollHeight;
     }
     if (selectedUserId) {
-        document.querySelector('#${selectedUserId}').classList.add('active');
+        document.querySelector(`#${selectedUserId}`).classList.add('active');
     } else {
-        messageForm.classList.add('hidden')
+        messageForm.classList.add('hidden');
     }
 
-    const notifiedUser = document.querySelector('#${message.senderId}');
+    const notifiedUser = document.querySelector(`#${message.senderId}`);
     if (notifiedUser && !notifiedUser.classList.contains('active')) {
         const nbrMsg = notifiedUser.querySelector('.nbr-msg');
         nbrMsg.classList.remove('hidden');
         nbrMsg.textContent = '';
     }
-}
-
-function onMessageReceived(payload) {
-    var message = JSON.parse(payload.body);
-
-    var messageElement = document.createElement('li');
-
-    if (message.type === 'JOIN') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' joined!';
-    } else if (message.type === 'LEAVE') {
-        messageElement.classList.add('event-message');
-        message.content = message.sender + ' left!';
-    } else {
-        messageElement.classList.add('chat-message');
-
-        var avatarElement = document.createElement('i');
-        var avatarText = document.createTextNode(message.sender[0]);
-        avatarElement.appendChild(avatarText);
-        avatarElement.style['background-color'] = getAvatarColor(message.sender);
-
-        messageElement.appendChild(avatarElement);
-
-        var usernameElement = document.createElement('span');
-        var usernameText = document.createTextNode(message.sender);
-        usernameElement.appendChild(usernameText);
-        messageElement.appendChild(usernameElement);
-    }
-
-    var textElement = document.createElement('p');
-    var messageText = document.createTextNode(message.content);
-    textElement.appendChild(messageText);
-
-    messageElement.appendChild(textElement);
-
-    messageArea.appendChild(messageElement);
-    messageArea.scrollTop = messageArea.scrollHeight;
 }
 
 function getAvatarColor(messageSender) {
@@ -264,7 +196,16 @@ function getAvatarColor(messageSender) {
     return colors[index];
 }
 
+function onLogout(){
+    stompClient.send("/app/user.disconnect-user",
+        {},
+        JSON.stringify({nickName: nickname, fullName: fullname, status: 'OFFLINE'})
+    );
+    window.location.reload();// przeladowujemy strone
+}
+
 // eventy co ma sie zadziac na wywołaniu danego formulatza
-usernameForm.addEventListener('submit', connect, true)
-messageForm.addEventListener('submit', sendMessage, true)
-messageForm.addEventListener('submit', sendPrivateMessage, true)
+usernameForm.addEventListener('submit', connect, true); // step 1
+messageForm.addEventListener('submit', sendMessage, true);
+logout.addEventListener('click', onLogout, true);
+window.onbeforeunload = () => onLogout();

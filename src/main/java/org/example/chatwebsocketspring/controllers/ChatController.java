@@ -55,7 +55,7 @@ public class ChatController {
         // bartek/queue/private
         simpMessagingTemplate.convertAndSendToUser(
                 savedMessage.getRecipientId(),
-                "/queue/private",
+                "/queue/messages",
                 ChatNotification.builder()
                         .id(savedMessage.getId())
                         .recipientId(savedMessage.getRecipientId())
@@ -65,6 +65,7 @@ public class ChatController {
         );
     }
 
+    //odbieramy z metody powyżej
     @GetMapping("/messages/{senderId}/{recipientId}")
     public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable String senderId, @PathVariable String recipientId) {
         return ResponseEntity.ok(chatMessageService.findChatMessages(senderId, recipientId));

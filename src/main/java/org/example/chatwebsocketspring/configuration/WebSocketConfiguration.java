@@ -33,7 +33,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         // dodanie applicaton destination prefixes(where this should go) i konfiguracja borkera jako topic i queue
         registry.setApplicationDestinationPrefixes("/app"); //prefix do wiadomosci
-        registry.enableSimpleBroker("/topic"); // kanał pubiczny
+        registry.enableSimpleBroker("/topic", "/user");
         registry.setUserDestinationPrefix("/user"); // kanał do prywatynch wiadomowci
     }
 

@@ -6,7 +6,6 @@ import org.example.chatwebsocketspring.services.chatroom.ChatRoomService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
