@@ -35,7 +35,7 @@ public class UserController {
     public User disconnectUser(
             @Payload User user
     ) {
-        userService.save(user);
+        userService.disconnect(user);
         return user;
     }
 
